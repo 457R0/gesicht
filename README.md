@@ -16,10 +16,9 @@
 [![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`gesicht` drives the tools you already have (`amass`, `nmap`, `nuclei`, `ffuf`,
-`feroxbuster`, `httpx`, `sqlmap`, `wpscan`, `nikto`, `whatweb`, …) through one
-workflow — **recon → vulnerability scanning → findings → reports** — and refuses
-to touch anything outside the scope you defined.
+`gesicht` uses various tools (`amass`, `nmap`, `nuclei`, `ffuf`,
+`feroxbuster`, `httpx`, `sqlmap`, `wpscan`, `nikto`, `whatweb`,etc.) and combines them into one
+workflow — and refuses to touch anything outside the scope you defined.
 
 Two ideas do most of the work:
 
@@ -157,9 +156,6 @@ scope import (read from the env or the system keyring, never written to disk),
 ```bash
 pytest -q && ruff check src/ tests/
 ```
-
-Planned: `gesicht traffic import` — HAR / Burp / mitmproxy analysis feeding back
-into recon and findings. See [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## License
 
