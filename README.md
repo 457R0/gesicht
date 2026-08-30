@@ -16,8 +16,8 @@
 [![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`gesicht` drives the tools you already use — `amass`, `nmap`, `nuclei`, `httpx`,
-`katana`, `arjun`, `sqlmap`, `nikto`, `wpscan`, `whatweb`, and more — through one
+`gesicht` combines various tools like `amass`, `nmap`, `nuclei`, `httpx`,
+`katana`, `arjun`, `sqlmap`, `nikto`, `wpscan`, `whatweb`, and more — into one
 workflow (subdomains → resolve → URLs → probe → scan → findings → report) and
 **refuses to send a packet at anything outside the scope you defined.**
 
@@ -32,8 +32,7 @@ Two ideas do most of the work:
 
 Each target gets a small, greppable **workspace**; plain-text files are the
 source of truth and the SQLite index is a rebuildable cache on top.
-See [`docs/DESIGN.md`](docs/DESIGN.md) for the architecture and
-[`docs/ROADMAP.md`](docs/ROADMAP.md) for what's planned.
+See [`docs/DESIGN.md`](docs/DESIGN.md) for the architecture.
 
 ## See it decide
 
@@ -340,7 +339,7 @@ confirmed twice.
 No. HackerOne is one scope *source* (`scope import --h1`). The scope engine and
 the rest of the workflow are program-agnostic — scope can equally come from a
 file or be typed by hand.
-
+I created this initially to be used for Bounty Hunts, it can be used with any, H1 is just where i started.
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
