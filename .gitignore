@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# gesicht runtime / engagement data (never commit target data)
+*.db
+.gesicht/
+loot/
+
+# editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

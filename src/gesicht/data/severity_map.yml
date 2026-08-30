@@ -1,0 +1,52 @@
+# Normalisation for scanner output.
+#
+# severity_aliases : map odd severity words onto info/low/medium/high/critical
+# scanner_default  : severity to assume when a scanner gives none
+# tag_weakness     : nuclei tag (or nikto/wpscan keyword) -> {cwe, weakness}
+
+severity_aliases:
+  informational: info
+  information: info
+  unknown: info
+  none: info
+  moderate: medium
+  important: high
+  severe: high
+
+scanner_default_severity:
+  nikto: low
+  wpscan: medium
+  sqlmap: high
+
+tag_weakness:
+  xss:            { cwe: CWE-79,  weakness: "Cross-site Scripting (XSS)" }
+  rxss:           { cwe: CWE-79,  weakness: "Reflected Cross-site Scripting" }
+  sqli:           { cwe: CWE-89,  weakness: "SQL Injection" }
+  ssti:           { cwe: CWE-1336, weakness: "Server-Side Template Injection" }
+  ssrf:           { cwe: CWE-918, weakness: "Server-Side Request Forgery (SSRF)" }
+  lfi:            { cwe: CWE-98,  weakness: "PHP Local File Inclusion" }
+  rfi:            { cwe: CWE-98,  weakness: "Remote File Inclusion" }
+  traversal:      { cwe: CWE-22,  weakness: "Path Traversal" }
+  rce:            { cwe: CWE-94,  weakness: "Code Injection" }
+  injection:      { cwe: CWE-74,  weakness: "Improper Neutralization (Injection)" }
+  redirect:       { cwe: CWE-601, weakness: "Open Redirect" }
+  "open-redirect": { cwe: CWE-601, weakness: "Open Redirect" }
+  idor:           { cwe: CWE-639, weakness: "Authorization Bypass Through User-Controlled Key" }
+  auth-bypass:    { cwe: CWE-287, weakness: "Improper Authentication" }
+  default-login:  { cwe: CWE-1392, weakness: "Use of Default Credentials" }
+  exposure:       { cwe: CWE-200, weakness: "Exposure of Sensitive Information" }
+  disclosure:     { cwe: CWE-200, weakness: "Exposure of Sensitive Information" }
+  "info-leak":    { cwe: CWE-200, weakness: "Exposure of Sensitive Information" }
+  secret:         { cwe: CWE-798, weakness: "Use of Hard-coded Credentials" }
+  token:          { cwe: CWE-200, weakness: "Exposure of Sensitive Information" }
+  cors:           { cwe: CWE-942, weakness: "Permissive Cross-domain Policy" }
+  crlf:           { cwe: CWE-93,  weakness: "CRLF Injection" }
+  xxe:            { cwe: CWE-611, weakness: "XML External Entity (XXE)" }
+  deserialization: { cwe: CWE-502, weakness: "Deserialization of Untrusted Data" }
+  takeover:       { cwe: CWE-350, weakness: "Subdomain Takeover" }
+  misconfig:      { cwe: CWE-16,  weakness: "Configuration" }
+  "default-page": { cwe: CWE-200, weakness: "Exposure of Sensitive Information" }
+  "tech":         {}
+  "cve":          {}
+  "network":      {}
+  "panel":        {}

@@ -1,0 +1,31 @@
+# {{ f.title }}
+
+{{ meta_block }}
+
+## Summary
+
+{{ f.summary | default("_TODO: one-paragraph description of the issue._", true) }}
+
+## Steps to Reproduce
+
+{{ f.steps_to_reproduce | default("_TODO: numbered, copy-pasteable steps._", true) }}
+
+## Proof of Concept
+
+{{ f.poc | default("_TODO: request/response, payload, or screenshot reference._", true) }}
+
+## Impact
+
+{{ f.impact | default("_TODO: what an attacker gains, and why it matters._", true) }}
+
+## Remediation
+
+{{ f.remediation | default("_TODO: the concrete fix._", true) }}
+
+## Supporting Material / References
+
+{{ refs_block }}
+
+{{ evidence_block }}
+---
+_Prepared with gesicht on {{ today }}. Review every `TODO` and redaction before submitting._
