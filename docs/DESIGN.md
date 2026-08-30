@@ -100,9 +100,3 @@ default. `gesicht` never submits anything.
 
 Scope can be typed by hand, imported from a file, or pulled from the HackerOne
 API (`scope import --h1`) — the engine itself is program-agnostic.
-
-## Not yet built
-
-Traffic analysis — `gesicht traffic import` for HAR / Burp / mitmproxy captures with
-heuristics (reflected params, IDOR candidates, tokens in URLs, CORS, secrets in
-responses) feeding back into recon and findings.
