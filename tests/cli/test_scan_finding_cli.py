@@ -73,6 +73,8 @@ def test_scan_nuclei_dedupes_on_rerun(workspaces_root, monkeypatch):
 
 def test_scan_nuclei_dry_run(workspaces_root, monkeypatch):
     _setup(workspaces_root, monkeypatch)
+    # tool absent (as on a clean CI runner): --dry-run still shows the plan
+    monkeypatch.setattr("gesicht.tools.registry.find_binary", lambda *a, **k: None)
     r = runner.invoke(app, ["scan", "nuclei", "https://a.acme.com", "--dry-run"])
     assert r.exit_code == 0
     assert "nuclei" in r.output and "IN" in r.output

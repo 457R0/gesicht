@@ -64,7 +64,11 @@ def _emit(ws, result: RunResult, *, as_json: bool, min_severity: str, draft: boo
         head = result.adapter + (
             f" (fallback for {result.fallback_for})" if result.fallback_for else ""
         )
-        console.print(f"[bold]{head}[/bold]\n  argv: " + " ".join(result.argv))
+        console.print(f"[bold]{head}[/bold]")
+        if result.tool_missing:
+            console.print(f"  [yellow]{result.adapter} is not installed[/yellow] "
+                          "- `gesicht tools install` or let it auto-install on a real run")
+        console.print("  argv: " + " ".join(result.argv))
         for d in result.decisions:
             mark = "[green]IN [/green]" if d.allowed else "[red]OUT[/red]"
             console.print(f"  {mark} {d.target}  [dim]{d.reason}[/dim]")

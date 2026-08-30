@@ -77,6 +77,7 @@ def _emit(ws, result: RunResult, as_json: bool) -> None:
         payload = {
             "adapter": result.adapter,
             "fallback_for": result.fallback_for,
+            "tool_missing": result.tool_missing,
             "argv": result.argv,
             "decisions": [
                 {"target": d.target, "allowed": d.allowed, "reason": d.reason}
@@ -124,6 +125,9 @@ def _print_dry(payload: dict) -> None:
     if payload["fallback_for"]:
         head += f"  (fallback for {payload['fallback_for']})"
     console.print(f"[bold]{head}[/bold]")
+    if payload.get("tool_missing"):
+        console.print(f"  [yellow]{payload['adapter']} is not installed[/yellow] "
+                      "- `gesicht tools install` or let it auto-install on a real run")
     console.print("  argv: " + " ".join(payload["argv"]))
     t = Table(box=None, show_header=False)
     for d in payload["decisions"]:

@@ -26,6 +26,8 @@ def test_probe_dry_run_falls_back_to_prober(workspaces_root, monkeypatch):
 
 def test_content_dry_run_shows_ffuf_command(workspaces_root, monkeypatch, tmp_path):
     _setup(workspaces_root, monkeypatch)
+    # tool absent (as on a clean CI runner): --dry-run still shows the plan
+    monkeypatch.setattr("gesicht.tools.registry.find_binary", lambda *a, **k: None)
     wl = tmp_path / "wl.txt"
     wl.write_text("admin\n")
     r = runner.invoke(

@@ -38,6 +38,7 @@ class RunResult:
     fallback_for: str | None = None
     raw_path: Path | None = None
     skipped: str | None = None
+    tool_missing: bool = False  # dry-run only: the resolved tool is not installed
 
     @property
     def argv(self) -> list[str]:
@@ -93,7 +94,9 @@ class Orchestrator:
             raise ToolUnavailable(adapter_name, "unknown adapter")
 
         run_adapter, av, fallback_for = self.reg.resolve_runnable(adapter)
-        if not av.ok:
+        # A dry run shows what *would* happen, so a missing tool is not fatal
+        # there - the plan (and the scope decision) still matter.
+        if not av.ok and not self.dry_run:
             raise ToolUnavailable(adapter.name, install_hint(adapter))
 
         activity = run_adapter.activity
@@ -155,6 +158,7 @@ class Orchestrator:
                 dry_run=True,
                 fallback_for=fallback_for,
                 raw_path=raw_path,
+                tool_missing=not av.ok,
             )
 
         records: list = []
