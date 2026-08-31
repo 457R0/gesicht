@@ -87,3 +87,10 @@ def test_real_subprocess_path(ws, fake_registry):
     assert res.run.exit_code == 0
     assert "hello acme.com" in res.raw_path.read_text()
     assert [h.hostname for h in res.records] == ["echoed.example.com"]
+
+
+def test_subprocess_timeout_kills_process_and_reports_exit_code(ws, fake_registry):
+    guard = _guard(("domain", "acme.com", True))
+    orch = Orchestrator(ws, guard, reg=fake_registry)
+    res = orch.run("fake_sleep", ["acme.com"], timeout=0.05)
+    assert res.run.exit_code == 124

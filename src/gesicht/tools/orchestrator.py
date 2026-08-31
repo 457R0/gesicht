@@ -8,11 +8,13 @@ log a ToolRun. There is no path around the scope check.
 from __future__ import annotations
 
 import subprocess
+import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+from ..core.console import err_console
 from ..core.errors import GesichtError, ToolUnavailable
 from ..core.models import Activity, ToolRun
 from ..core.store import Store
@@ -47,6 +49,47 @@ class RunResult:
 
 def _deny_all_confirm(_a: ToolAdapter, _t: Sequence[str]) -> bool:
     return False
+
+
+def _pump(stream, sink: list[str], *, echo_label: str | None) -> None:
+    """Read lines from a child's pipe, accumulate them, and optionally echo live.
+
+    Runs on a background thread so stdout and stderr can both be drained
+    concurrently without deadlocking the child (and without buffering the
+    whole run silently until the process exits).
+    """
+    for line in iter(stream.readline, ""):
+        sink.append(line)
+        if echo_label is not None:
+            err_console.print(f"[dim]{echo_label} | {line.rstrip()}[/dim]")
+    stream.close()
+
+
+def _run_streamed(step: list[str], timeout: float | None) -> tuple[str, str, int]:
+    """Run one step, streaming its output live, and return (stdout, stderr, exit_code)."""
+    proc = subprocess.Popen(  # noqa: S603 - argv is built by the adapter
+        step, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
+    )
+    echo_label = step[0] if err_console.is_terminal else None
+    stdout_lines: list[str] = []
+    stderr_lines: list[str] = []
+    t_out = threading.Thread(
+        target=_pump, args=(proc.stdout, stdout_lines), kwargs={"echo_label": echo_label}
+    )
+    t_err = threading.Thread(
+        target=_pump, args=(proc.stderr, stderr_lines), kwargs={"echo_label": None}
+    )
+    t_out.start()
+    t_err.start()
+    try:
+        exit_code = proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        exit_code = 124
+    t_out.join()
+    t_err.join()
+    return "".join(stdout_lines), "".join(stderr_lines), exit_code
 
 
 def install_hint(adapter: ToolAdapter) -> str:
@@ -170,12 +213,9 @@ class Orchestrator:
                 stdout_acc: list[str] = []
                 stderr_acc: list[str] = []
                 for i, step in enumerate(steps):
-                    proc = subprocess.run(  # noqa: S603 - argv is built by the adapter
-                        step, capture_output=True, text=True, timeout=timeout
-                    )
-                    stdout_acc.append(proc.stdout or "")
-                    stderr_acc.append(proc.stderr or "")
-                    exit_code = proc.returncode
+                    stdout, stderr, exit_code = _run_streamed(step, timeout)
+                    stdout_acc.append(stdout)
+                    stderr_acc.append(stderr)
                     if exit_code != 0 and i < len(steps) - 1:
                         break  # a prep step failed; don't run the rest
                 raw_path.write_text(stdout_acc[-1] if stdout_acc else "")
@@ -183,8 +223,6 @@ class Orchestrator:
                 if joined_err:
                     raw_path.with_suffix(raw_path.suffix + ".stderr").write_text(joined_err)
                 records = list(run_adapter.parse(raw_path, task))
-        except subprocess.TimeoutExpired:
-            exit_code = 124
         except FileNotFoundError as e:
             raise ToolUnavailable(run_adapter.name, str(e)) from e
 

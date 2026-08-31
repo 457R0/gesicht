@@ -59,9 +59,24 @@ class FakeEcho(ToolAdapter):
             yield Host(hostname="echoed.example.com", sources=["fake_echo"])
 
 
+class FakeSleep(ToolAdapter):
+    """A slow command, for exercising streaming/timeout behavior."""
+
+    name = "fake_sleep"
+    binaries = ("sh",)
+    category = "recon"
+    activity = Activity.PASSIVE
+
+    def build_command(self, task: Task, binary: str) -> list[str]:
+        return [binary, "-c", "sleep 1"]
+
+    def parse(self, raw_path: Path, task: Task) -> Iterator[Host]:
+        return iter(())
+
+
 @pytest.fixture
 def fake_registry() -> Registry:
     reg = Registry()
-    for a in (FakeInternal(), FakeActiveInternal(), FakeMissing(), FakeEcho()):
+    for a in (FakeInternal(), FakeActiveInternal(), FakeMissing(), FakeEcho(), FakeSleep()):
         reg.register(a)
     return reg
