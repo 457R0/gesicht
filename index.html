@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gesicht — how it works</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header class="page-head">
+      <h1>Gesicht</h1>
+      <p class="tagline">
+        A command-line orchestrator for a pentest engagement. It sets up a
+        workspace, tracks what is in scope, runs recon and scanning tools for
+        you, and files everything it learns into a queryable database of hosts,
+        services, findings and notes.
+      </p>
+      <p class="tagline">
+        The guide below is a quick example of how Gesicht can be used, we are using it against the 
+        "Metasploitable2" VM.
+      </p>
+    </header>
+
+    <main>
+      <section id="config">
+        <h2>1. Configure the Gesicht's root</h2>
+        <p>
+          This step is optional. If you skip it, Gesicht defaults to
+          <code>/home/gesicht</code>. For this example, we set <code>workspaces_root</code>
+          to <code>HuntingGrounds</code> (This can be any folder you wish!). The setting is written to
+          <code>~/.config/gesicht/config.yml</code>.
+        </p>
+        <figure>
+          <img src="img/GesichtWorkspaces.png" alt="Terminal showing 'gesicht config set --help' and then setting workspaces_root to /home/kali/Documents/HuntingGrounds">
+          <figcaption>
+            <code>gesicht config set workspaces_root &lt;path&gt;</code> — any
+            key can be overridden this way, including tool paths like
+            <code>tool.subfinder</code>.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="init">
+        <h2>2. Create the folders</h2>
+        <p>
+          <code>gesicht init (desired folder name)</code> scaffolds a new workspace
+          under the root folder you just set and selects it as the active one, so later commands
+          know which engagement they belong to.
+        </p>
+        <figure>
+          <img src="img/Creating the new folder.png" alt="Terminal running 'gesicht init Metasploitable' with output 'workspace ready' and 'selected workspace Metasploitable'">
+          <figcaption>
+            The workspace is created at
+            <code>.../HuntingGrounds/Metasploitable</code> and marked as
+            selected.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="layout">
+        <h2>3. The workspace layout</h2>
+        <p>
+          Listing the new directory shows the structure Gesicht lays down:
+          folders for <code>recon</code>, <code>scans</code>,
+          <code>findings</code>, <code>reports</code>, <code>loot</code>,
+          <code>exploits</code> and <code>content</code>, plus a
+          <code>scope.md</code>, a <code>notes.md</code> and a
+          <code>README.md</code>.
+        </p>
+        <figure>
+          <img src="img/change directory to new folder.png" alt="Terminal 'ls' inside the Metasploitable workspace showing content, exploits, findings, loot, notes.md, README.md, recon, reports, scans, scope.md">
+          <figcaption>
+            Everything the run produces is filed into this tree.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="targetip">
+        <h2>4. Find the target's IP</h2>
+        <p>
+          Run on the target VM itself, <code>ifconfig</code> gives the address
+          we will put in scope — <code>192.168.96.129</code>.
+        </p>
+        <figure>
+          <img src="img/MSFip.png" alt="ifconfig output on metasploitable showing eth0 inet addr 192.168.96.129">
+          <figcaption>The target's <code>eth0</code> address.</figcaption>
+        </figure>
+      </section>
+
+      <section id="scope">
+        <h2>5. Define the scope</h2>
+        <p>
+        <code>scope list</code> shows
+          what is in and out of scope, and <code>scope.md</code> is kept in sync
+          as a human-readable record. Every active command checks this before it
+          touches a target.
+        </p>
+        <figure>
+          <img src="img/settingscope.png" alt="Terminal adding 192.168.96.129 to scope, listing scope, and cat scope.md showing the In scope / Out of scope sections">
+          <figcaption>
+            In this example we set the VM's IP to a shell variable $MSF and then add it to our scope. we use cat to verify it was correctly set.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="dryrun">
+        <h2>6. Preview the recon command</h2>
+        <p>
+          <code>gesicht recon ports "$MSF" --dry-run</code> prints the exact
+          <code>nmap</code> invocation Gesicht would run — the full
+          <code>argv</code>, the output path, and the scope decision — without
+          running anything. Gesicht is orchestrating nmap, not replacing it.
+        </p>
+        <figure>
+          <img src="img/MSFPortDryrun.png" alt="Terminal 'gesicht recon ports $MSF --dry-run' printing the nmap argv, the scans/nmap/nmap.xml output path, and '192.168.96.129 in scope via ip'">
+          <figcaption>
+            The dry-run function can be used with any command to print the command Gesicht will use, great way to double-check 
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="portscan">
+        <h2>7. Run the port scan</h2>
+        <p>
+          <code>--yes-active</code> authorises the real scan. Gesicht runs nmap,
+          parses the results into the database (<code>1 host, 23 services</code>),
+          and keeps the raw output under <code>scans/nmap/</code> so nothing is
+          lost.
+        </p>
+        <figure>
+          <img src="img/viewingnmapraw.png" alt="Terminal running the active recon scan reporting '1 hosts, 23 services', then cat of the raw nmap text output listing open ports 21 ftp, 22 ssh, 80 http and many more">
+          <figcaption>
+           after running a command you can view the raw output of the tool by going to the scans folder and opening the file. Here we simply just used cat to view it in terminal. (you can also use SQL queries more on that below!)
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="tables">
+        <h2>8. Gesicht's SQL Tables</h2>
+        <p>Using SQL queries you can extract the data Gesicht has collected in any way you want.</p>
+        <figure>
+          <img src="img/Gesicht q tables tutorial.png" alt="Output of 'gesicht q --tables' listing endpoint, finding, finding_fts, host, param, service, tool_run and vuln tables with their columns">
+          <figcaption>
+        <code>gesicht q --tables</code> lists the tables Gesicht writes to. All recon and scan results land here.
+          </figcaption>
+        </figure>
+    
+        <p>we can recreate the nmap output by querying the service table.</p>  
+        <figure>
+        <img src="img/QueryofNmap.png" alt="Terminal 'gesicht q select port,name,product,version from service order by port' returning a 23-row table of ports and their detected products">
+          <figcaption>
+             Here we are querying ports, names, products and versions of the services table.
+          </figcaption>
+        </figure>
+    </section>
+
+
+      <section id="nuclei">
+        <h2>9. Vulnerability scan</h2>
+        <p>Gesicht is able to use nuclei to scan for vulnerabilities. Hits are automatically turned into editable draft findings</p>
+        <figure>
+          <img src="img/nuclei scan.png" alt="Terminal running the nuclei scan: '72 hits — 4 critical, 18 high, 3 medium, 6 low, 41 info' with a severity/name/where table, ending with '52 drafted findings'">
+          <figcaption>
+          <code>gesicht scan nuclei "$MSF" --yes-active</code> runs nuclei
+          against the in-scope target.  
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="findings">
+        <h2>10. Viewing the scan results</h2>
+        <p>
+          <code>gesicht finding ls</code> shows every finding with its id,
+          severity, status, title and target.
+        </p>
+        <figure>
+          <img src="img/list the nuclei.png" alt="Wide terminal table from 'gesicht finding ls' listing findings 0001 through 0052 with severity, draft status, title and target URL columns">
+          <figcaption>
+          The list of findings from nuclei scan
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="finding-show">
+        <h2>11. Read a single finding</h2>
+        <p>
+          Gesicht automatically drafts a report for each finding, with a summary, impact, mitigation and references. You can edit these sections before you publish the report.
+        </p>
+        <figure>
+          <img src="img/viewing a specific finding.png" alt="Terminal 'gesicht finding show 0046' for the VSFTPD 2.3.4 backdoor finding, showing severity critical, CVSS 9.8, a summary paragraph, and empty report sections with reference links">
+          <figcaption>
+            Finding 0046 — VSFTPD 2.3.4 backdoor command execution
+            (CVE-2011-2523), severity critical.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="notes-add">
+        <h2>12. Jot that down!</h2>
+        <p>
+          <code>gesicht notes add</code> appends whatever you put after <code>add</code> to the
+          workspace's running notes. <code>-t idea</code> tags it, so notes can
+          be grouped later.
+        </p>
+        <figure>
+          <img src="img/adding notes.png" alt="Terminal 'gesicht notes add ...SSH 22: no RCE in 4.7p1; testing weak creds + CVE-2008-0166 keys -t idea' returning 'noted under 2026-08-31'">
+          <figcaption>in this note we added the line SSH 22: no RCE...</figcaption>
+        </figure>
+      </section>
+
+      <section id="notes-show">
+        <h2>13. Read the notes back</h2>
+        <p>
+          <code>gesicht notes show</code> renders <code>notes.md</code>, newest
+          entry first, grouped by day with the time and any tags.
+        </p>
+        <figure>
+          <img src="img/viewing the added note.png" alt="Terminal 'gesicht notes show' displaying the Running notes markdown with the 2026-08-31 heading and the 07:30 SSH note tagged #idea">
+          <figcaption>The note we just added, shown in context.</figcaption>
+        </figure>
+      </section>
+
+      <section id="status">
+        <h2>14. Check the workspace status</h2>
+        <p>
+          <code>gesicht status</code> gives the one-screen summary: which
+          workspace is active, the scope count, and how many hosts, services,
+          URLs, params, vulns, findings and tool runs are on record.
+        </p>
+        <figure>
+          <img src="img/showing gesichts status.png" alt="Terminal 'gesicht status' showing workspace Metasploitable, scope '1 in / 0 out', and a data/count table: hosts 1, services 23, urls 1, params 0, vulns 52, findings 52, runs 3">
+          <figcaption>
+            <code>gesicht status</code> gives the workspace summary
+        </figcaption>
+        </figure>
+      </section>
+    </main>
+
+    <footer class="page-foot">
+      <p>Gesicht &middot; engagement walkthrough</p>
+    </footer>
+  </body>
+</html>
