@@ -16,6 +16,7 @@ from .commands import notes as notes_cmd
 from .commands import recon as recon_cmd
 from .commands import reindex as reindex_cmd
 from .commands import report as report_cmd
+from .commands import runs as runs_cmd
 from .commands import scan as scan_cmd
 from .commands import scope as scope_cmd
 from .commands import status as status_cmd
@@ -47,6 +48,7 @@ app.add_typer(status_cmd.app, name="status")
 app.add_typer(scope_cmd.app, name="scope")
 app.add_typer(tools_cmd.app, name="tools")
 app.add_typer(recon_cmd.app, name="recon")
+app.add_typer(runs_cmd.app, name="runs")
 app.add_typer(scan_cmd.app, name="scan")
 app.add_typer(finding_cmd.app, name="finding")
 app.add_typer(report_cmd.app, name="report")
